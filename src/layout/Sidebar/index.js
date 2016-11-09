@@ -1,16 +1,15 @@
 
 // Transform to Stateless Functional Components when finished
 
-import React, { Component } from 'react'
-import { Link } from 'react-router'
-import {Drawer, Card, CardHeader, Divider} from 'material-ui'
-
-import ActionHome from 'material-ui/svg-icons/action/home'
-import ActionStore from 'material-ui/svg-icons/action/store'
-import ActionSettings from 'material-ui/svg-icons/action/settings'
-import ActionHelp from 'material-ui/svg-icons/action/help'
-import SocialPeople from 'material-ui/svg-icons/social/people'
-import {List, ListItem} from 'material-ui/List';
+import React, {Component, PropTypes} from "react";
+import {Link} from "react-router";
+import {Drawer, Card, CardHeader, Divider} from "material-ui";
+import ActionHome from "material-ui/svg-icons/action/home";
+import ActionStore from "material-ui/svg-icons/action/store";
+import ActionSettings from "material-ui/svg-icons/action/settings";
+import ActionHelp from "material-ui/svg-icons/action/help";
+import SocialPeople from "material-ui/svg-icons/social/people";
+import {List, ListItem, makeSelectable} from "material-ui/List";
 
 
 export default class Sidebar extends Component {
@@ -42,8 +41,9 @@ export default class Sidebar extends Component {
                 avatar={this.props.profile.picture}
               />
             </Card>
-            <List>
+            <SelectableList defaultValue="dashboard">
               <ListItem
+                value="dashboard"
                 primaryText="Dashboard"
                 leftIcon={<ActionHome />}
                 containerElement={<Link to="/admin" />} />
@@ -54,11 +54,13 @@ export default class Sidebar extends Component {
                 primaryTogglesNestedList={true}
                 nestedItems={[
                   <ListItem
+                    value="intreprinderi.lista"
                     key={1}
                     insetChildren={true}
                     primaryText="Lista"
                     containerElement={<Link to="/admin/intreprinderi" />}/>,
                   <ListItem
+                    value="intreprinderi.inregistrare"
                     key={2}
                     insetChildren={true}
                     primaryText="Inregistrare"
@@ -72,28 +74,62 @@ export default class Sidebar extends Component {
                 primaryTogglesNestedList={true}
                 nestedItems={[
                   <ListItem
+                    value="utilizatori.lista"
                     key={1}
                     primaryText="Lista"
                     containerElement={<Link to="/admin/utilizatori" />}/>,
                 ]}
               />
-            </List>
-
-          <div id="leftNavFooter" style={{position: 'absolute', bottom: 0, width: '100%', overflow: 'hidden'}}>
-            <Divider />
-            <List>
+              <Divider />
               <ListItem
+                value="profil"
                 primaryText="Profil"
                 leftIcon={<ActionSettings />}
                 containerElement={<Link to="/admin/profil" />} />
               <ListItem
+                value="ajutor"
                 primaryText="Ajutor"
                 leftIcon={<ActionHelp />}
                 containerElement={<Link to="/admin/ajutor" />} />
-            </List>
-          </div>
+          </SelectableList>
         </Drawer>
 
     )
   }
 }
+
+let SelectableList = makeSelectable(List);
+
+function wrapState(ComposedComponent) {
+  return class SelectableList extends Component {
+    static propTypes = {
+      children: PropTypes.node.isRequired,
+      defaultValue: PropTypes.string.isRequired,
+    };
+
+    componentWillMount() {
+      this.setState({
+        selectedIndex: this.props.defaultValue,
+      });
+    }
+
+    handleRequestChange = (event, index) => {
+      this.setState({
+        selectedIndex: index,
+      });
+    };
+
+    render() {
+      return (
+          <ComposedComponent
+              value={this.state.selectedIndex}
+              onChange={this.handleRequestChange}
+          >
+            {this.props.children}
+          </ComposedComponent>
+      );
+    }
+  };
+}
+
+SelectableList = wrapState(SelectableList)
